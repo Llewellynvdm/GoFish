@@ -1,19 +1,20 @@
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Champlain College SDEV-345-81
  *
  * C++ Week 4: Discussion (first semester) - Go Fish (2020/09/20)
  *
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *
- * Collaborate on the discussion to develop a card game. “Go Fish” is a classic children’s card game
+ * Collaborate on the discussion to develop a card game.
+ * “Go Fish” is a classic children’s card game
  *
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *
  * Written by Llewellyn van der Merwe <llewellyn.vandermerw@mymail.champlain.edu>, September 2020
  * Copyright (C) 2020. All Rights Reserved
  * License GNU/GPL Version 2 or later - http://www.gnu.org/licenses/gpl-2.0.html
  *
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+ * * * * * * * * * * * * * * * * * * * * *  * * * * * * * * * * * * * * * * */
 
 #include <iostream>
 #include <string>
@@ -25,7 +26,7 @@
 
 using namespace std;
 
-class mapper {
+class cardDB {
 protected:
 
     /**
@@ -54,11 +55,16 @@ protected:
     map<string, string> deck_display;
 
 public:
+    /**
+     * for debugging
+     **/
+    bool debug = false;
+    // just change this to true to see debug info
 
     /**
      * Constructor to setup the mapper
      **/
-    mapper() {
+    cardDB() {
         // for display
         this->deck_display["H1"] = "Ace of Hearts";
         this->deck_display["D1"] = "Ace of Diamonds";
@@ -67,6 +73,7 @@ public:
 
         this->deck_display["H2"] = "Two of Hearts";
         this->deck_display["D2"] = "Two of Diamonds";
+        this->deck_display["S2"] = "Two of Spades";
         this->deck_display["C2"] = "Two of Clubs";
 
         this->deck_display["H3"] = "Three of Hearts";
@@ -221,7 +228,7 @@ public:
     }
 
     // check if we can find the card
-    bool find(string key) {
+    bool searchDeck(string key) {
         // the iterator search
         map<string, double>::iterator found = this->deck_specifics_a.find(key);
         // check if it is found
@@ -241,7 +248,7 @@ public:
     }
 
     // check if we can find the card
-    bool find(double key) {
+    bool searchDeck(double key) {
         // the iterator search
         map<double, string>::iterator found = this->deck_specifics_b.find(key);
         // check if it is found
@@ -267,7 +274,7 @@ public:
     }
 };
 
-class deck : public mapper {
+class deck : public cardDB {
 protected:
     /**
      * mode 1 = RANK; 2 = SPECIFIC;
@@ -290,7 +297,6 @@ public:
     stack<double> mixed;
 
     deck() {
-
         // setup the mixed deck
         for (map<string, double>::iterator i = this->deck_specifics_a.begin(); i != this->deck_specifics_a.end(); ++i) {
             // random sort the cards
@@ -313,6 +319,8 @@ public:
                     break;
             }
         }
+        // if debug mode we check the shuffle
+        vector<double> debug_deck;
         // complete the shuffle
         int not_again[] = {0, 0, 0, 0, 0};
         int deck_n = 0;
@@ -323,26 +331,41 @@ public:
                 if (1 == deck_n && !this->deck_1.empty()) {
                     // add to real deck
                     this->mixed.push(this->deck_1.top());
+                    if (this->debug) {
+                        debug_deck.push_back(this->deck_1.top());
+                    }
                     // remove from tem deck
                     this->deck_1.pop();
                 } else if (2 == deck_n && !this->deck_2.empty()) {
                     // add to real deck
                     this->mixed.push(this->deck_2.top());
+                    if (this->debug) {
+                        debug_deck.push_back(this->deck_2.top());
+                    }
                     // remove from tem deck
                     this->deck_2.pop();
                 } else if (3 == deck_n && !this->deck_3.empty()) {
                     // add to real deck
                     this->mixed.push(this->deck_3.top());
+                    if (this->debug) {
+                        debug_deck.push_back(this->deck_3.top());
+                    }
                     // remove from tem deck
                     this->deck_3.pop();
                 } else if (4 == deck_n && !this->deck_4.empty()) {
                     // add to real deck
                     this->mixed.push(this->deck_4.top());
+                    if (this->debug) {
+                        debug_deck.push_back(this->deck_4.top());
+                    }
                     // remove from tem deck
                     this->deck_4.pop();
                 } else if (5 == deck_n && !this->deck_5.empty()) {
                     // add to real deck
                     this->mixed.push(this->deck_5.top());
+                    if (this->debug) {
+                        debug_deck.push_back(this->deck_5.top());
+                    }
                     // remove from tem deck
                     this->deck_5.pop();
                 } else {
@@ -356,6 +379,14 @@ public:
                     break;
                 }
             }
+        }
+        // if debug mode we check the shuffle
+        if (this->debug) {
+            // this is the current deck
+            cout << __LINE__ << " This is the current deck" << endl;
+            // setup the reverse map
+            for(double i : debug_deck)
+                cout << i <<  " = " << this->deck_specifics_b[i] << endl;
         }
     }
 
@@ -383,8 +414,16 @@ public:
         map<string, int>::iterator found = this->deck_ranks_a.find(key);
         // check if it is found
         if (found != this->deck_ranks_a.end()) {
+            // show values in debugging
+            if (this->debug){
+                cout << __LINE__ << " getRankKey [" << key << "] => " << found->second << endl;
+            }
             // element found;
             return found->second;
+        }
+        // show values in debugging
+        if (this->debug){
+            cout << __LINE__ << " getRankKey [" << key << "] => not found" << endl;
         }
         // element not found
         return 0;
@@ -474,7 +513,7 @@ public:
     }
 };
 
-class hand : public mapper {
+class hand : public cardDB {
 protected:
     // the deck in each and
     bool cards[13][4] = {};
@@ -487,6 +526,10 @@ protected:
         rank = (int) card;
         shape = (int) (card * 10000);
         shape = (shape - (rank * 10000)) / 1000;
+        // show values in debugging
+        if (this->debug){
+            cout << __LINE__ << " set [" << card << "] R=" << rank << " S=" << shape << " state=" << state << endl;
+        }
         // set the state
         return this->set(rank, shape, state);
     }
@@ -494,6 +537,10 @@ protected:
     bool set(int rank, int shape, bool state) {
         // now set the card state
         this->cards[rank][shape] = state;
+        // show values in debugging
+        if (this->debug){
+            cout << __LINE__ << " set R=" << rank << " S=" << shape << " state=" << state << endl;
+        }
         // always true :)
         return true;
     }
@@ -501,9 +548,17 @@ protected:
     // remove the cards locally
     bool remove(double card, bool found = false) {
         // check if this card is in the deck
-        if (found || this->find(card)) {
+        if (found || this->searchDeck(card)) {
+            // show values in debugging
+            if (this->debug){
+                cout << __LINE__ << " removed=" << card << endl;
+            }
             // was removed so true
             return this->set(card, false);
+        }
+        // show values in debugging
+        if (this->debug){
+            cout << __LINE__ << " not removed=" << card << endl;
         }
         // was not removed
         return false;
@@ -512,11 +567,19 @@ protected:
     // remove the card locally (may not be needed)
     bool remove(string card, bool found = false) {
         // check if this card is in the deck
-        if (found || this->find(card)) {
+        if (found || this->searchDeck(card)) {
             // get the double
             double d_card = this->get(card);
+            // show values in debugging
+            if (this->debug){
+                cout << __LINE__ << " removed=[" << d_card << "]=" << card << endl;
+            }
             // was removed so true
             return this->set(d_card, false);
+        }
+        // show values in debugging
+        if (this->debug){
+            cout << __LINE__ << " not removed=" << card << endl;
         }
         // was not removed
         return false;
@@ -524,6 +587,10 @@ protected:
 
     // remove the cards locally (may not be needed)
     bool remove(int rank) {
+        // show values in debugging
+        if (this->debug){
+            cout << __LINE__ << " removed=" << rank << endl;
+        }
         // there can only be four ranks
         for (int shape = 1; shape < 5; shape++) {
             this->set(rank, shape, false);
@@ -534,17 +601,30 @@ protected:
 
     // the getter
     bool has(int rank, int shape) {
+        // show values in debugging
+        if (this->debug){
+            cout << __LINE__ << " has R=" << rank << " S=" << shape << " answer=" << this->cards[rank][shape] << endl;
+        }
         // now add the card
         return this->cards[rank][shape];
     }
 
     // the getter RANK
-    bool has(int rank) {
+    bool has(int rank, bool give) {
         bool found = false;
         for (int s = 1; s < 5; s++) {
             if (this->cards[rank][s]) {
                 double r = this->getDoubleKey(rank, s);
-                this->lose.push_back(r);
+                // show values in debugging
+                if (this->debug && give){
+                    cout << __LINE__ << " has & give R=" << rank << " S=" << s << " answer=1" << " [" << r << "]" << endl;
+                } else if (this->debug){
+                    cout << __LINE__ << " has R=" << rank << " S=" << s << " answer=1" << " [" << r << "]" << endl;
+                }
+                // give value to another player
+                if (give) {
+                    this->lose.push_back(r);
+                }
                 found = true;
             }
         }
@@ -575,11 +655,38 @@ public:
     }
 
     // set the cards locally
-    bool add(double card) {
+    bool add(int card) {
         // check if this card is in the deck
-        if (this->find(card)) {
+        if (this->searchDeck(card)) {
+            // show values in debugging
+            if (this->debug){
+                cout << __LINE__ << " add " << card << endl;
+            }
             // was set so true
             return this->set(card, true);
+        }
+        // show values in debugging
+        if (this->debug){
+            cout << __LINE__ << " did not add " << card << endl;
+        }
+        // was not set
+        return false;
+    }
+
+    // set the cards locally
+    bool add(double card) {
+        // check if this card is in the deck
+        if (this->searchDeck(card)) {
+            // show values in debugging
+            if (this->debug){
+                cout << __LINE__ << " add " << card << endl;
+            }
+            // was set so true
+            return this->set(card, true);
+        }
+        // show values in debugging
+        if (this->debug){
+            cout << __LINE__ << " did not add " << card << endl;
         }
         // was not set
         return false;
@@ -588,24 +695,42 @@ public:
     // set the cards locally (may not be needed)
     bool add(string card) {
         // check if this card is in the deck
-        if (this->find(card)) {
+        if (this->searchDeck(card)) {
             // get the double
             double d_card = this->get(card);
+            // show values in debugging
+            if (this->debug){
+                cout << __LINE__ << " add [" << d_card << "] " << card << endl;
+            }
             // was set so true
             return this->set(d_card, true);
+        }
+        // show values in debugging
+        if (this->debug){
+            cout << __LINE__ << " did not add " << card << endl;
         }
         // was not set
         return false;
     }
 
     // set the cards locally
-    bool hasCard(double card, bool give = false) {
+    bool hasCard(double card, bool give) {
+        // always rest the lose
+        this->lose.clear();
+        // show values in debugging
+        if (this->debug){
+            cout << __LINE__ << " we clear the lose vector" << endl;
+        }
         // check if this card is in the deck
-        if (this->find(card)) {
+        if (this->searchDeck(card)) {
             int rank, shape;
             rank = (int) card;
             shape = (int) (card * 10000);
             shape = (shape - (rank * 10000)) / 1000;
+            // show values in debugging
+            if (this->debug){
+                cout << __LINE__ << " has card [" << card << "]" << " R=" << rank << " S=" << shape << endl;
+            }
             // check if we must remove it at the same time
             if (give) {
                 // get the card
@@ -624,40 +749,55 @@ public:
     }
 
     // set the card RANK locally
-    bool hasCard(int card, bool give = false) {
+    bool hasCard(int card, bool give) {
         // always rest the lose
         this->lose.clear();
         // check if this card is in the deck
         if (card > 0 && card < 14) {
+            // show values in debugging
+            if (this->debug){
+                cout << __LINE__ << " has card [" << card << "]" << endl;
+            }
             // check if we must remove it at the same time
             if (give) {
                 // get the card
-                if (this->has(card)) {
+                if (this->has(card, give)) {
                     // remove since it is found
-                    for (auto c : this->lose)
+                    for (double c : this->lose) {
+                        // show values in debugging
+                        if (this->debug) {
+                            cout << __LINE__ << " lose [" << c << "]" << endl;
+                        }
                         this->remove(c, true);
+                    }
                     return true;
                 }
                 // not found
                 return false;
             }
             // return if the card is found
-            return this->has(card);
+            return this->has(card, give);
         }
         // not a card
         return false;
     }
 
     // set the cards locally (may not be needed)
-    bool hasCard(string card, bool give = false) {
+    bool hasCard(string card, bool give) {
+        // always rest the lose
+        this->lose.clear();
         // check if this card is in the deck
-        if (this->find(card)) {
+        if (this->searchDeck(card)) {
             // get the double
             double d_card = this->get(card);
             int rank, shape;
             rank = (int) d_card;
             shape = (int) (d_card * 10000);
             shape = (shape - (rank * 10000)) / 1000;
+            // show values in debugging
+            if (this->debug){
+                cout << __LINE__ << " has card [" << card << "=" << d_card << "]" << " R=" << rank << " S=" << shape << endl;
+            }
             // check if we must remove it at the same time
             if (give) {
                 // get the card
@@ -682,10 +822,25 @@ public:
 
     // ask for a card
     bool askCard(int card, hand &AHand) {
+        // show values in debugging
+        if (this->debug){
+            cout << __LINE__ << " ask [" << card << "]" << endl;
+        }
         if (card > 0 && AHand.hasCard(card, true)) {
             vector<double> winnings = AHand.getWinnings();
-            for (auto i : winnings)
-                this->add(i);
+            for (double c : winnings) {
+                // show values in debugging
+                if (this->debug) {
+                    cout << __LINE__ << " winning [" << c << "]" << endl;
+                }
+                if (!this->add(c)){
+                    if (this->debug){
+                        cout << __LINE__ << " winning ERROR->[" << c << "]" << endl;
+                    }
+                    // break on error
+                    return false;
+                }
+            }
             // cards were found
             return true;
         }
@@ -695,7 +850,15 @@ public:
 
     // ask for a card
     bool askCard(double card, hand &AHand) {
+        // show values in debugging
+        if (this->debug){
+            cout << __LINE__ << " ask [" << card << "]" << endl;
+        }
         if (AHand.hasCard(card, true)) {
+            // show values in debugging
+            if (this->debug) {
+                cout << __LINE__ << " before add [" << card << "]" << endl;
+            }
             // cards were found
             return this->add(card);
         }
@@ -719,18 +882,16 @@ protected:
     bool deceit;
     // allow empty deck
     bool empty_deck;
-    // the deck index
-    int index = 1;
     // player hands
     map<int, hand> hands;
 
     // opening setup
     void setupBoard() {
         // for quick testing
-//        this->players = 2;
-//        this->mode = 1;
-//        this->empty_deck = false;
-//        return;
+        //this->players = 2;
+        //this->mode = 1;
+        //this->empty_deck = false;
+        //return;
         // string to get answers
         string tmp;
         // ask the opening questions
@@ -857,7 +1018,7 @@ public:
             } else {
                 cout << "So H1 is the key for Ace of Hearts" << endl;
             }
-            cout << "Are you ready to continue?" << endl;
+            cout << "Player [" << p << "] are you ready to continue?" << endl;
             cout << "(y/n): ";
             cin >> yes;
             if (yes == "y" || yes == "Y" || yes == "yes" || yes == "Yes") {
@@ -875,6 +1036,17 @@ public:
                 // if the player is beyond the list (start at player one)
                 if (p > this->players) {
                     p = 1;
+                }
+                // little pause to setup the new player
+                while (true) {
+                    cout << "Player [" << p << "] are you ready to continue?" << endl;
+                    cout << "(y/n): ";
+                    cin >> yes;
+                    if (yes == "y" || yes == "Y" || yes == "yes" || yes == "Yes") {
+                        break;
+                    }
+                    cin.clear();
+                    cin.ignore();
                 }
                 // reset getting new player
                 get_new_player = false;
@@ -907,16 +1079,14 @@ public:
                     ask = 2;
                 }
             }
-            // player questions
-            cout << "You are player [" << p << "]" << endl;
-            cout << "We will show your hand in a moment." << endl;
             // check if we should ask for next player
             if (ask_next) {
+                cout << "We will show your hand in a moment." << endl;
                 while (true) {
                     cout << "Please select a player you would like to ask between:" << endl;
                     cout << "[" << f << " - " << l << "] ";
                     cin >> tmp;
-                    if ((tmp >= f || tmp <= l) && tmp != p) {
+                    if (tmp >= f && tmp <= l && tmp != p) {
                         ask = tmp;
                         break;
                     }
@@ -934,7 +1104,7 @@ public:
                 cin >> card;
                 // make string uppercase
                 transform(card.begin(), card.end(), card.begin(), ::toupper);
-                if (this->find(card)) {
+                if (this->searchDeck(card)) {
                     break;
                 }
                 cin.clear();
@@ -974,10 +1144,11 @@ public:
                         cout << endl;
                     } else {
                         cout << "The new card was added to your hand...." << endl;
-                        cout << "Okay it is now the next players turn!" << endl;
-                        cout << endl;
-                        cout << endl;
-                        cout << endl;
+                        // player questions
+                        cout << "Player [" << p << "] your turn is over." << endl;
+                        cout << endl << endl << endl << endl << endl << endl;
+                        cout << endl << endl << endl << endl << endl << endl;
+                        cout << endl << endl << endl << endl << endl << endl;
                         get_new_player = true;
                     }
                 } else {
